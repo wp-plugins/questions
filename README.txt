@@ -30,7 +30,9 @@ Drag & drop your survey with the Questions plugin and export results as CSV.
 * **CVS Export** - Get your results as CVS file.
 
 **Bug Reporting**
+
 Please report issues at Github:
+
 * https://github.com/awsmug/Questions/issues
 
 This is an Awesome Plugin.
