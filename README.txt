@@ -1,9 +1,9 @@
 === Questions ===
 Contributors: mahype, awesome
 Donate link: http://awesome.ug/donate
-Tags: survey, surveys, polls, poll, science
-Requires at least: 4.1
-Tested up to: 4.1
+Tags: survey, surveys, polls, poll, create poll, custom poll, online poll, custom survey, online survey, votes, voting, wp polls, wp survey, yop poll, online survey, online poll
+Requires at least: 4.1.1
+Tested up to: 4.1.1
 Stable tag: 1.0.0
 
 Drag&Drop surveys / polls for WordPress.
