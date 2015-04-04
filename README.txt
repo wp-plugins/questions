@@ -10,7 +10,7 @@ Drag&Drop surveys / polls for WordPress.
 
 == Description ==
 
-Create your survey or poll by drag&drop with the Questions plugin and export results in a CSV file.
+Drag & drop your survey with the awesome Questions plugin and export results in a CSV file.
 
 **Question Types**
 
@@ -30,7 +30,7 @@ Create your survey or poll by drag&drop with the Questions plugin and export res
 * **CVS Export** - Get your Results as CVS File.
 
 **Bug Reporting**
-Please report issues at Github: 
+Please report issues at Github:
 https://github.com/awsmug/Questions/issues
 
 This is an Awesome Plugin.
@@ -45,9 +45,9 @@ twitter: http://twitter.com/awsmug - GitHub: https://github.com/awsmug
 
 == Screenshots ==
 
-1. **Drag&drop your questions and move them up and down**
-2. **Also Drag&Drop Answers**
-3. **Published Survey**
+1. **Drag&Drop your questions and move them up and down**
+2. **Also Drag&Drop answers**
+3. **Published survey**
 4. **Inviting WordPress users or let open who can participate**
 5. **Text element setting options**
 6. **Setup templates for inviting and remembering mails**
