@@ -14,23 +14,24 @@ Create your survey or poll by drag&drop with the Questions plugin and export res
 
 **Question Types**
 
-* **Text** Simple text input.
-* **Textarea** Multiple line text input.
-* **One Choice** Radiobutton one choice input.
-* **Multiple Choice** Select one ore more values with this input.
-* **Dropdown** Select your answer from a dropdown input.
+* **Text** - Simple text input.
+* **Textarea** - Multiple line text input.
+* **One Choice** - Radiobutton one choice input.
+* **Multiple Choice** - Select one ore more values with this input.
+* **Dropdown** - Select your answer from a dropdown input.
 
 **Features**
 
-* **Drag&Drop** Drag& Drop questions to your survey, also sort Answers by Drag&Drop.
-* **Validation** Validate the entered data in question settings.
-* **Participiants** Add registered users to survey or let everybody participate.
-* **Remember Mail** Send a remembering Email to participiants.
-* **Lightweight CSS** Easy to overwrite CSS in Frontend.
-* **CVS Export** Get your Results as CVS File.
+* **Drag&Drop** - Drag& Drop questions to your survey, also sort Answers by Drag&Drop.
+* **Validation** - Validate the entered data in question settings.
+* **Participiants** - Add registered users to survey or let everybody participate.
+* **Remember Mail** - Send a remembering Email to participiants.
+* **Lightweight CSS** - Easy to overwrite CSS in Frontend.
+* **CVS Export** - Get your Results as CVS File.
 
 **Bug Reporting**
-Please report issues at Github: https://github.com/awsmug/Questions/issues
+Please report issues at Github: 
+https://github.com/awsmug/Questions/issues
 
 This is an Awesome Plugin.
 
