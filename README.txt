@@ -2,8 +2,8 @@
 Contributors: mahype, awesome
 Donate link: http://awesome.ug/donate
 Tags: survey, surveys, polls, poll, science
-Requires at least: 4.1.1
-Tested up to: 4.1.1
+Requires at least: 4.1
+Tested up to: 4.1
 Stable tag: 1.0.0
 
 Drag&Drop surveys / polls for WordPress.
@@ -26,6 +26,8 @@ Create your survey or poll by drag&drop with the Questions plugin and export res
 * **Validation** Validate the entered data in question settings.
 * **Participiants** Add registered users to survey or let everybody participate.
 * **Remember Mail** Send a remembering Email to participiants.
+* **Lightweight CSS** Easy to overwrite CSS in Frontend.
+* **CVS Export** Get your Results as CVS File.
 
 **Bug Reporting**
 Please report issues at Github: https://github.com/awsmug/Questions/issues
@@ -42,7 +44,12 @@ twitter: http://twitter.com/awsmug - GitHub: https://github.com/awsmug
 
 == Screenshots ==
 
-1. **Text**
+1. **Drag&drop your questions and move them up and down**
+2. **Also Drag&Drop Answers**
+3. **Published Survey**
+4. **Inviting WordPress users or let open who can participate**
+5. **Text element setting options**
+6. **Setup templates for inviting and remembering mails**
 
 == Changelog ==
 
