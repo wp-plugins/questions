@@ -10,7 +10,7 @@ Drag&Drop surveys / polls for WordPress.
 
 == Description ==
 
-Drag & drop your survey with the Questions plugin and export results as CSV.
+Drag & drop your survey with the Questions plugin.
 
 **Question Types**
 
