@@ -3,7 +3,7 @@
 Plugin Name: Questions
 Plugin URI: http://www.awesome.ug
 Description: Drag & drop your survey/poll with the WordPress Questions plugin.
-Version: 1.0.0 beta 6
+Version: 1.0.0 beta 7
 Author: awesome.ug
 Author URI: http://www.awesome.ug
 Author Email: contact@awesome.ug
@@ -96,7 +96,7 @@ class Questions_Init{
 			sort int(11) NOT NULL,
 			type char(50) NOT NULL,
 			UNIQUE KEY id (id)
-			)";
+			) ENGINE = INNODB DEFAULT CHARSET = utf8;";
 			
 		dbDelta( $sql );
 		
@@ -107,7 +107,7 @@ class Questions_Init{
 			answer text NOT NULL,
 			sort int(11) NOT NULL,
 			UNIQUE KEY id (id)
-			)";
+			) ENGINE = INNODB DEFAULT CHARSET = utf8;";
 			
 		dbDelta( $sql );
 		
@@ -119,7 +119,7 @@ class Questions_Init{
 			remote_addr char(15) NOT NULL,
 			cookie_key char(30) NOT NULL,
 			UNIQUE KEY id (id)
-			)";
+			) ENGINE = INNODB DEFAULT CHARSET = utf8;";
 			
 		dbDelta( $sql );
 		
@@ -129,7 +129,7 @@ class Questions_Init{
 			question_id int(11) NOT NULL,
 			value text NOT NULL,
 			UNIQUE KEY id (id)
-			)";
+			) ENGINE = INNODB DEFAULT CHARSET = utf8;";
 			
 		dbDelta( $sql );
 		
@@ -139,7 +139,7 @@ class Questions_Init{
 			name text NOT NULL,
 			value text NOT NULL,
 			UNIQUE KEY id (id)
-			)";
+			) ENGINE = INNODB DEFAULT CHARSET = utf8;";
 			
 		dbDelta( $sql );
 		
@@ -148,9 +148,27 @@ class Questions_Init{
 			survey_id int(11) NOT NULL,
 			user_id int(11) NOT NULL,
 			UNIQUE KEY id (id)
-			)";
+			) ENGINE = INNODB DEFAULT CHARSET = utf8;";
 			
 		dbDelta( $sql );
+		
+		$sql = "ALTER TABLE $table_questions CONVERT TO CHARACTER SET utf8 collate utf8_general_ci;";
+		$wpdb->query( $sql );
+		
+		$sql = "ALTER TABLE $table_answers CONVERT TO CHARACTER SET utf8 collate utf8_general_ci;";
+		$wpdb->query( $sql );
+		
+		$sql = "ALTER TABLE $table_responds CONVERT TO CHARACTER SET utf8 collate utf8_general_ci;";
+		$wpdb->query( $sql );
+		
+		$sql = "ALTER TABLE $table_respond_answers CONVERT TO CHARACTER SET utf8 collate utf8_general_ci;";
+		$wpdb->query( $sql );
+		
+		$sql = "ALTER TABLE $table_participiants CONVERT TO CHARACTER SET utf8 collate utf8_general_ci;";
+		$wpdb->query( $sql );
+		
+		$sql = "ALTER TABLE $table_settings CONVERT TO CHARACTER SET utf8 collate utf8_general_ci;";
+		$wpdb->query( $sql );
 		
 		update_option( 'questions_db_version', '1.1.0' );
 		
@@ -263,9 +281,7 @@ class Questions_Init{
 	* @since 1.0.0
 	*/
 	private static function get_folder(){
-		$sub_folder = substr( dirname(__FILE__), strlen( ABSPATH ), ( strlen( dirname(__FILE__) ) - strlen( ABSPATH ) ) );
-		$script_folder = ABSPATH . $sub_folder;
-		return $script_folder;
+		return plugin_dir_path( __FILE__ );
 	}
 	
 	/**

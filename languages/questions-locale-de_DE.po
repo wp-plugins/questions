@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: SurveyVal v1.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2015-04-09 15:39+0100\n"
-"PO-Revision-Date: 2015-04-09 15:41+0100\n"
+"PO-Revision-Date: 2015-04-09 19:10+0100\n"
 "Last-Translator: Sven Wagener <sven.wagener@rheinschmiede.de>\n"
 "Language-Team: \n"
 "Language: de_DE\n"
@@ -675,7 +675,7 @@ msgstr ""
 # @ surveyval-locale
 #: ../components/elements/separator.php:18
 msgid "Separator"
-msgstr "Separatorn"
+msgstr "Separator"
 
 # @ surveyval-locale
 #: ../components/elements/separator.php:19
