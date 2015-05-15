@@ -69,75 +69,75 @@ class Questions_SurveyElement_Text extends Questions_SurveyElement {
 	}
 
 	public function validate( $input ) {
-
-		$min_length = $this->settings[ 'min_length' ];
-		$max_length = $this->settings[ 'max_length' ];
-		$validation = $this->settings[ 'validation' ];
-
-		$error = FALSE;
-
-		if ( ! empty( $min_length ) ) {
-			if ( strlen( $input ) < $min_length ):
-				$this->validate_errors[ ] = esc_attr__(
-						'The input ist too short.', 'questions-locale'
-					) . ' ' . sprintf(
-						esc_attr__( 'It have to be at minimum %d and maximum %d chars.', 'questions-locale' ),
-						$min_length,
-						$max_length
-					);
-				$error                    = TRUE;
-			endif;
-		}
-
-		if ( ! empty( $max_length ) ) {
-			if ( strlen( $input ) > $max_length ):
-				$this->validate_errors[ ] = esc_attr__( 'The input is too long.', 'questions-locale' ) . ' ' . sprintf(
-						esc_attr__( 'It have to be at minimum %d and maximum %d chars.', 'questions-locale' ),
-						$min_length,
-						$max_length
-					);
-				$error                    = TRUE;
-			endif;
-		}
-
-		if ( 'none' != $validation ):
-			switch ( $validation ) {
-				case 'numbers':
-					if ( ! preg_match( '/^[0-9]{1,}$/', $input ) ):
-						$this->validate_errors[ ] = sprintf(
-							esc_attr__( 'Please input a number.', 'questions-locale' ), $max_length
+	
+			$min_length = $this->settings[ 'min_length' ];
+			$max_length = $this->settings[ 'max_length' ];
+			$validation = $this->settings[ 'validation' ];
+	
+			$error = FALSE;
+	
+			if ( ! empty( $min_length ) ) {
+				if ( strlen( $input ) < $min_length ):
+					$this->validate_errors[ ] = esc_attr__(
+							'The input ist too short.', 'questions-locale'
+						) . ' ' . sprintf(
+							esc_attr__( 'It have to be at minimum %d and maximum %d chars.', 'questions-locale' ),
+							$min_length,
+							$max_length
 						);
-						$error                    = TRUE;
-					endif;
-					break;
-				case 'numbers_decimal':
-					if ( ! preg_match( '/^-?([0-9])+\.?([0-9])+$/', $input )
-						&& ! preg_match(
-							'/^-?([0-9])+\,?([0-9])+$/', $input
-						)
-					):
-						$this->validate_errors[ ] = sprintf(
-							esc_attr__( 'Please input a decimal number.', 'questions-locale' ), $max_length
-						);
-						$error                    = TRUE;
-					endif;
-					break;
-				case 'email_address':
-					if ( ! preg_match( '/^[\w-.]+[@][a-zA-Z0-9-.äöüÄÖÜ]{3,}\.[a-z.]{2,4}$/', $input ) ):
-						$this->validate_errors[ ] = sprintf(
-							esc_attr__( 'Please input a valid Email-Address.', 'questions-locale' ), $max_length
-						);
-						$error                    = TRUE;
-					endif;
-					break;
+					$error                    = TRUE;
+				endif;
 			}
-		endif;
-
-		if ( $error ):
-			return FALSE;
-		endif;
-
-		return TRUE;
+	
+			if ( ! empty( $max_length ) ) {
+				if ( strlen( $input ) > $max_length ):
+					$this->validate_errors[ ] = esc_attr__( 'The input is too long.', 'questions-locale' ) . ' ' . sprintf(
+							esc_attr__( 'It have to be at minimum %d and maximum %d chars.', 'questions-locale' ),
+							$min_length,
+							$max_length
+						);
+					$error                    = TRUE;
+				endif;
+			}
+	
+			if ( 'none' != $validation ):
+				switch ( $validation ) {
+					case 'numbers':
+						if ( ! preg_match( '/^[0-9]{1,}$/', $input ) ):
+							$this->validate_errors[ ] = sprintf(
+								esc_attr__( 'Please input a number.', 'questions-locale' ), $max_length
+							);
+							$error                    = TRUE;
+						endif;
+						break;
+					case 'numbers_decimal':
+						if ( ! preg_match( '/^-?([0-9])+\.?([0-9])+$/', $input )
+							&& ! preg_match(
+								'/^-?([0-9])+\,?([0-9])+$/', $input
+							)
+						):
+							$this->validate_errors[ ] = sprintf(
+								esc_attr__( 'Please input a decimal number.', 'questions-locale' ), $max_length
+							);
+							$error                    = TRUE;
+						endif;
+						break;
+					case 'email_address':
+						if ( ! preg_match( '/^[\w-.]+[@][a-zA-Z0-9-.äöüÄÖÜ]{3,}\.[a-z.]{2,4}$/', $input ) ):
+							$this->validate_errors[ ] = sprintf(
+								esc_attr__( 'Please input a valid Email-Address.', 'questions-locale' ), $max_length
+							);
+							$error                    = TRUE;
+						endif;
+						break;
+				}
+			endif;
+	
+			if ( $error ):
+				return FALSE;
+			endif;
+	
+			return TRUE;
 	}
 }
 

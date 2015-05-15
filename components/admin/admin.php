@@ -55,6 +55,7 @@ class Questions_Admin extends Questions_Component {
 	 * Init in WordPress, run on constructor
 	 *
 	 * @return null
+	 * @since 1.0.0
 	 */
 	public function on_admin() {
 
@@ -69,9 +70,9 @@ class Questions_Admin extends Questions_Component {
 		add_action( 'add_meta_boxes', array( $this, 'meta_boxes' ), 10 );
 		add_action( 'save_post', array( $this, 'save_survey' ) );
 		add_action( 'delete_post', array( $this, 'delete_survey' ) );
-		add_action( 'wp_ajax_questions_add_members_standard', array( $this, 'filter_user_ajax' ) );
-		add_action( 'wp_ajax_questions_invite_participiants', array( $this, 'invite_participiants' ) );
-		add_action( 'wp_ajax_questions_dublicate_survey', array( $this, 'dublicate_survey' ) );
+		add_action( 'wp_ajax_questions_add_members_standard', array( $this, 'ajax_add_members' ) );
+		add_action( 'wp_ajax_questions_invite_participiants', array( $this, 'ajax_invite_participiants' ) );
+		add_action( 'wp_ajax_questions_duplicate_survey', array( $this, 'ajax_duplicate_survey' ) );
 		add_action( 'init', array( $this, 'save_settings' ), 20 );
 		add_action( 'admin_notices', array( $this, 'show_notices' ) );
 	}
@@ -116,7 +117,11 @@ class Questions_Admin extends Questions_Component {
 		);
 	}
 
-	// Fix for getting correct menu and display
+	/**
+	 * Fix for getting correct menu and display
+	 * 
+	 * @since 1.0.0
+	 */
 	public function tax_menu_correction( $parent_file ) {
 
 		global $current_screen;
@@ -138,7 +143,12 @@ class Questions_Admin extends Questions_Component {
 
 		include( QUESTIONS_COMPONENTFOLDER . '/admin/pages/settings.php' );
 	}
-
+	
+	/**
+	 * Place to drop elements
+	 * 
+	 * @since 1.0.0
+	 */
 	public function droppable_area() {
 
 		global $post, $questions_global;
@@ -149,7 +159,8 @@ class Questions_Admin extends Questions_Component {
 
 		$html = '<div id="questions-content" class="drag-drop">';
 		$html .= '<div id="drag-drop-area" class="widgets-holder-wrap">';
-
+		
+		$html .= '<div id="drag-drop-inside">';
 		/* << INSIDE DRAG&DROP AREA >> */
 		$survey = new Questions_Survey( $post->ID );
 		// Running each Element
@@ -157,12 +168,8 @@ class Questions_Admin extends Questions_Component {
 			$html .= $element->draw_admin();
 		endforeach;
 		/* << INSIDE DRAG&DROP AREA >> */
-
-		$html .= '<div class="drag-drop-inside">';
-		$html .= '<p class="drag-drop-info">';
-		$html .= esc_attr__( 'Drop your Element here.', 'questions-locale' );
-		$html .= '</p>';
 		$html .= '</div>';
+		
 		$html .= '</div>';
 		$html .= '</div>';
 		$html .= '<div id="delete_surveyelement_dialog">' . esc_attr__(
@@ -176,7 +183,56 @@ class Questions_Admin extends Questions_Component {
 
 		echo $html;
 	}
+	
+	/**
+	 * Adding meta boxes
+	 * 
+	 * @param string $post_type Actual post type
+	 * @since 1.0.0
+	 */
+	public function meta_boxes( $post_type ) {
 
+		$post_types = array( 'questions' );
+
+		if ( in_array( $post_type, $post_types ) ):
+			add_meta_box(
+				'survey-options',
+				esc_attr__( 'Options', 'questions-locale' ),
+				array( $this, 'meta_box_survey_options' ),
+				'questions',
+				'side'
+			);
+			add_meta_box(
+				'survey-invites',
+				esc_attr__( 'Survey Functions', 'questions-locale' ),
+				array( $this, 'meta_box_survey_functions' ),
+				'questions',
+				'side'
+			);
+			add_meta_box(
+				'survey-elements',
+				esc_attr__( 'Elements', 'questions-locale' ),
+				array( $this, 'meta_box_survey_elements' ),
+				'questions',
+				'side',
+				'high'
+			);
+			add_meta_box(
+				'survey-participiants',
+				esc_attr__( 'Participiants list', 'questions-locale' ),
+				array( $this, 'meta_box_survey_participiants' ),
+				'questions',
+				'normal',
+				'high'
+			);
+		endif;
+	}
+	
+	/**
+	 * Elements for dropping
+	 * 
+	 * @since 1.0.0
+	 */
 	public function meta_box_survey_elements() {
 
 		global $questions_global;
@@ -184,14 +240,17 @@ class Questions_Admin extends Questions_Component {
 		$html = '';
 
 		foreach ( $questions_global->element_types AS $element ):
-			$html .= '<div class="questions-draggable">';
 			$html .= $element->draw_admin();
-			$html .= '</div>';
 		endforeach;
 
 		echo $html;
 	}
-
+	
+	/**
+	 * Survey participiants box
+	 * 
+	 * @since 1.0.0
+	 */
 	public function meta_box_survey_participiants() {
 
 		global $wpdb, $post, $questions_global;
@@ -365,7 +424,12 @@ class Questions_Admin extends Questions_Component {
 
 		echo $html;
 	}
-
+	
+	/**
+	 * Survey options
+	 * 
+	 * @since 1.0.0
+	 */
 	public function meta_box_survey_options() {
 
 		global $post;
@@ -400,7 +464,12 @@ class Questions_Admin extends Questions_Component {
 
 		echo $html;
 	}
-
+	
+	/**
+	 * Invitations box
+	 * 
+	 * @since 1.0.0
+	 */
 	public function meta_box_survey_functions() {
 
 		global $post;
@@ -412,7 +481,7 @@ class Questions_Admin extends Questions_Component {
 		$questions_reinvitation_subject_template = qu_get_mail_template_subject( 'reinvitation' );
 
 		$html = '<div class="questions-function-element">';
-		$html .= '<input id="questions-dublicate-survey" name="questions-dublicate-survey" type="button" class="button" value="' . esc_attr__(
+		$html .= '<input id="questions-duplicate-survey" name="questions-duplicate-survey" type="button" class="button" value="' . esc_attr__(
 				'Dublicate Survey', 'questions-locale'
 			) . '" />';
 		$html .= '</div>';
@@ -448,47 +517,16 @@ class Questions_Admin extends Questions_Component {
 		echo $html;
 	}
 
-	public function meta_boxes( $post_type ) {
-
-		$post_types = array( 'questions' );
-
-		if ( in_array( $post_type, $post_types ) ):
-			add_meta_box(
-				'survey-options',
-				esc_attr__( 'Options', 'questions-locale' ),
-				array( $this, 'meta_box_survey_options' ),
-				'questions',
-				'side'
-			);
-			add_meta_box(
-				'survey-invites',
-				esc_attr__( 'Survey Functions', 'questions-locale' ),
-				array( $this, 'meta_box_survey_functions' ),
-				'questions',
-				'side'
-			);
-			add_meta_box(
-				'survey-elements',
-				esc_attr__( 'Elements', 'questions-locale' ),
-				array( $this, 'meta_box_survey_elements' ),
-				'questions',
-				'side',
-				'high'
-			);
-			add_meta_box(
-				'survey-participiants',
-				esc_attr__( 'Participiants list', 'questions-locale' ),
-				array( $this, 'meta_box_survey_participiants' ),
-				'questions',
-				'normal',
-				'high'
-			);
-		endif;
-	}
-
+	/**
+	 * Saving data
+	 * 
+	 * @param int $post_id
+	 * @since 1.0.0
+	 */
 	public function save_survey( $post_id ) {
+		global $questions_global, $wpdb;
 
-		if ( array_key_exists( 'questions-dublicate-survey', $_REQUEST ) ) {
+		if ( array_key_exists( 'questions-duplicate-survey', $_REQUEST ) ) {
 			return;
 		}
 
@@ -504,18 +542,6 @@ class Questions_Admin extends Questions_Component {
 			return;
 		}
 
-		$this->save_survey_postdata( $post_id );
-
-		do_action( 'questions_save_survey', $post_id );
-
-		// Preventing dublicate saving
-		remove_action( 'save_post', array( $this, 'save_survey' ), 50 );
-	}
-
-	public function save_survey_postdata( $post_id ) {
-
-		global $questions_global, $wpdb;
-
 		$survey_elements                  = $_POST[ 'questions' ];
 		$survey_deleted_surveyelements    = $_POST[ 'questions_deleted_surveyelements' ];
 		$survey_deleted_answers           = $_POST[ 'questions_deleted_answers' ];
@@ -523,6 +549,7 @@ class Questions_Admin extends Questions_Component {
 		$survey_show_results              = $_POST[ 'show_results' ];
 		$questions_participiants          = $_POST[ 'questions_participiants' ];
 
+		// p( $_POST );
 		/*
 		 * Saving Restrictions
 		 */
@@ -573,13 +600,13 @@ class Questions_Admin extends Questions_Component {
 				continue;
 			}
 
-			$question_id = $survey_question[ 'id' ];
+			$question_id = (int) $survey_question[ 'id' ];
 			$question    = '';
-			$sort        = $survey_question[ 'sort' ];
+			$sort        = (int) $survey_question[ 'sort' ];
 			$type        = $survey_question[ 'type' ];
 
 			if ( array_key_exists( 'question', $survey_question ) ) {
-				$question = $survey_question[ 'question' ];
+				$question = qu_prepare_post_data( $survey_question[ 'question' ] );
 			}
 
 			$answers  = array();
@@ -630,9 +657,9 @@ class Questions_Admin extends Questions_Component {
 			 */
 			if ( is_array( $answers ) && count( $answers ) > 0 ):
 				foreach ( $answers AS $answer ):
-					$answer_id   = $answer[ 'id' ];
-					$answer_text = $answer[ 'answer' ];
-					$answer_sort = $answer[ 'sort' ];
+					$answer_id   = (int) $answer[ 'id' ];
+					$answer_text = qu_prepare_post_data( $answer[ 'answer' ] );
+					$answer_sort = (int) $answer[ 'sort' ];
 
 					$answer_section = '';
 					if ( array_key_exists( 'section', $answer ) ) {
@@ -683,7 +710,7 @@ class Questions_Admin extends Questions_Component {
 						$wpdb->update(
 							$questions_global->tables->settings,
 							array(
-								'value' => $settings[ $name ]
+								'value' => qu_prepare_post_data( $settings[ $name ] )
 							),
 							array(
 								'question_id' => $question_id,
@@ -696,7 +723,7 @@ class Questions_Admin extends Questions_Component {
 							array(
 								'name'        => $name,
 								'question_id' => $question_id,
-								'value'       => $settings[ $name ]
+								'value'       => qu_prepare_post_data( $settings[ $name ] )
 							)
 						);
 
@@ -726,9 +753,54 @@ class Questions_Admin extends Questions_Component {
 
 		do_action( 'save_questions', $post_id );
 
-		return TRUE;
-	}
+		do_action( 'questions_save_survey', $post_id );
 
+		// Preventing duplicate saving
+		remove_action( 'save_post', array( $this, 'save_survey' ), 50 );
+	}
+	
+	/**
+	 * Saving settings of survey
+	 * 
+	 * @since 1.0.0
+	 */
+	public function save_settings() {
+
+		if ( ! array_key_exists( 'questions_settings_save', $_POST ) ) {
+			return;
+		}
+
+		if ( ! isset( $_POST[ 'questions_save_settings_field' ] )
+			|| ! wp_verify_nonce(
+				$_POST[ 'questions_save_settings_field' ], 'questions_save_settings'
+			)
+		) {
+			return;
+		}
+
+		update_option(
+			'questions_thankyou_participating_subject_template',
+			$_POST[ 'questions_thankyou_participating_subject_template' ]
+		);
+		update_option( 'questions_invitation_subject_template', qu_prepare_post_data( $_POST[ 'questions_invitation_subject_template' ] ) );
+		update_option( 'questions_reinvitation_subject_template', qu_prepare_post_data( $_POST[ 'questions_reinvitation_subject_template' ] ) );
+
+		update_option(
+			'questions_thankyou_participating_text_template', qu_prepare_post_data( $_POST[ 'questions_thankyou_participating_text_template' ]
+		));
+		update_option( 'questions_invitation_text_template', qu_prepare_post_data( $_POST[ 'questions_invitation_text_template' ] ));
+		update_option( 'questions_reinvitation_text_template', qu_prepare_post_data( $_POST[ 'questions_reinvitation_text_template' ] ));
+
+		update_option( 'questions_mail_from_name', qu_prepare_post_data( $_POST[ 'questions_mail_from_name' ] ) );
+		update_option( 'questions_mail_from_email', $_POST[ 'questions_mail_from_email' ] );
+	}
+	
+	/**
+	 * Delete survey
+	 * 
+	 * @param int $survey_id
+	 * @since 1.0.0
+	 */
 	public function delete_survey( $survey_id ) {
 
 		global $wpdb, $questions_global;
@@ -802,8 +874,13 @@ class Questions_Admin extends Questions_Component {
 			array( 'survey_id' => $survey_id )
 		);
 	}
-
-	public function filter_user_ajax() {
+	
+	/**
+	 * Adding user by AJAX
+	 * 
+	 * @since 1.0.0
+	 */
+	public function ajax_add_members() {
 
 		$users = get_users(
 			array(
@@ -826,8 +903,13 @@ class Questions_Admin extends Questions_Component {
 
 		die();
 	}
-
-	public function invite_participiants() {
+	
+	/**
+	 * Invite participiants AJAX
+	 * 
+	 * @since 1.0.0
+	 */
+	public function ajax_invite_participiants() {
 
 		global $wpdb, $questions_global;
 
@@ -902,6 +984,42 @@ class Questions_Admin extends Questions_Component {
 		die();
 	}
 
+	/**
+	 * Dublicating survey AJAX
+	 * 
+	 * @since 1.0.0
+	 */
+	public function ajax_duplicate_survey() {
+
+		$survey_id = $_REQUEST[ 'survey_id' ];
+		$survey    = get_post( $survey_id );
+
+		if ( 'questions' != $survey->post_type ) {
+			return;
+		}
+
+		$survey        = new questions_PostSurvey( $survey_id );
+		$new_survey_id = $survey->duplicate( TRUE, FALSE, TRUE, TRUE, TRUE, TRUE );
+
+		$post = get_post( $new_survey_id );
+
+		$response = array(
+			'survey_id'  => $new_survey_id,
+			'post_title' => $post->post_title,
+			'admin_url'  => site_url( '/wp-admin/post.php?post=' . $new_survey_id . '&action=edit' )
+		);
+
+		echo json_encode( $response );
+
+		die();
+	}
+	
+	/**
+	 * Cheks if we are in correct post type
+	 * 
+	 * @return boolean $is_questions_post_type
+	 * @since 1.0.0
+	 */
 	private function is_questions_post_type() {
 
 		global $post;
@@ -919,70 +1037,26 @@ class Questions_Admin extends Questions_Component {
 		return TRUE;
 	}
 
-	public function save_settings() {
-
-		if ( ! array_key_exists( 'questions_settings_save', $_POST ) ) {
-			return;
-		}
-
-		if ( ! isset( $_POST[ 'questions_save_settings_field' ] )
-			|| ! wp_verify_nonce(
-				$_POST[ 'questions_save_settings_field' ], 'questions_save_settings'
-			)
-		) {
-			return;
-		}
-
-		update_option(
-			'questions_thankyou_participating_subject_template',
-			$_POST[ 'questions_thankyou_participating_subject_template' ]
-		);
-		update_option( 'questions_invitation_subject_template', $_POST[ 'questions_invitation_subject_template' ] );
-		update_option( 'questions_reinvitation_subject_template', $_POST[ 'questions_reinvitation_subject_template' ] );
-
-		update_option(
-			'questions_thankyou_participating_text_template', $_POST[ 'questions_thankyou_participating_text_template' ]
-		);
-		update_option( 'questions_invitation_text_template', $_POST[ 'questions_invitation_text_template' ] );
-		update_option( 'questions_reinvitation_text_template', $_POST[ 'questions_reinvitation_text_template' ] );
-
-		update_option( 'questions_mail_from_name', $_POST[ 'questions_mail_from_name' ] );
-		update_option( 'questions_mail_from_email', $_POST[ 'questions_mail_from_email' ] );
-	}
-
-	public function dublicate_survey() {
-
-		$survey_id = $_REQUEST[ 'survey_id' ];
-		$survey    = get_post( $survey_id );
-
-		if ( 'questions' != $survey->post_type ) {
-			return;
-		}
-
-		$survey        = new questions_PostSurvey( $survey_id );
-		$new_survey_id = $survey->dublicate( TRUE, FALSE, TRUE, TRUE, TRUE, TRUE );
-
-		$post = get_post( $new_survey_id );
-
-		$response = array(
-			'survey_id'  => $new_survey_id,
-			'post_title' => $post->post_title,
-			'admin_url'  => site_url( '/wp-admin/post.php?post=' . $new_survey_id . '&action=edit' )
-		);
-
-		echo json_encode( $response );
-
-		die();
-	}
-
-	public function notice( $message, $type = 'updated' ) {
+	/**
+	 * Adding notice to admin
+	 * 
+	 * @param string $message
+	 * @param string $type
+	 * @since 1.0.0
+	 */
+	public function add_notice( $message, $type = 'updated' ) {
 
 		$this->notices[ ] = array(
 			'message' => $message,
 			'type'    => $type,
 		);
 	}
-
+	
+	/**
+	 * Showing notices in admin
+	 * 
+	 * @since 1.0.0
+	 */
 	public function show_notices() {
 
 		if ( is_array( $this->notices ) && count( $this->notices ) > 0 ):
@@ -1018,8 +1092,8 @@ class Questions_Admin extends Questions_Component {
 			'reinvitations_not_sent_successfully' => esc_attr__(
 				'Renvitations could not be sent!', 'questions-locale'
 			),
-			'dublicate_survey_successfully'       => esc_attr__(
-				'Survey dublicated successfully!', 'questions-locale'
+			'duplicate_survey_successfully'       => esc_attr__(
+				'Survey duplicated successfully!', 'questions-locale'
 			),
 			'edit_survey'                         => esc_attr__( 'Edit Survey', 'questions-locale' ),
 			'added_participiants'                 => esc_attr__( 'participiant/s', 'questions-locale' )

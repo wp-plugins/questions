@@ -34,6 +34,7 @@ Drag & drop your survey with the Questions plugin.
 
 * English
 * German
+* Dutch (Thanks to Remco Wesselius)
 * Persian (Thanks to Hos3in)
 * Swedish (Thanks to Elger Lindgren)
 
@@ -67,6 +68,13 @@ twitter: http://twitter.com/awsmug - GitHub: https://github.com/awsmug
 
 == Changelog ==
 
+= 1.0.0 beta 10 =
+* Enhanced code structure
+* Added Dutch language files (Thanks to Remco Wesselius)
+* Also showing questions if question text not have been filled in
+* Reworked Drag&Drop area to be sortable from the first drop
+* Preparing data after submitting
+
 = 1.0.0 beta 9 =
 * Fixed restrictions bug
 
@@ -74,7 +82,7 @@ twitter: http://twitter.com/awsmug - GitHub: https://github.com/awsmug
 * Added pariticipiants option "No restrictions"
 * Added filters for default on $participiants_restrictions
 * Added filters for texts
-* Added swedish language files (Thanks to Elger Lindgren)
+* Added swedish language files (Thanks to Remco Wesselius)
 * Added persian language files (Thanks to Hos3in)
 * Code enhancements (Thanks to Frank Bültge)
 
