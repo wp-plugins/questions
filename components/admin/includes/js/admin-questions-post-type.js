@@ -1,6 +1,55 @@
 (function ($) {
 	"use strict";
 	$( function () {
+	    
+	    /**
+         * Counting all input fields of a selected container
+         */
+        var count_form_elements = function( selector ){
+          var count_inputs = $( selector ).find( 'input' ).length;
+          var count_textareas = $( selector ).find( 'textarea' ).length;
+          var count_select = $( selector ).find( 'select' ).length;
+          
+          var count_all = count_inputs + count_textareas + count_select;
+          
+          return count_all;
+        }
+        
+	    /**
+         * Counting form input vars and showing 
+         */
+        var check_max_input_vars = function(){
+            var max_input_vars =  parseInt( $( "#max_input_vars" ).val() );
+            var input_vars = parseInt( count_form_elements( '#post' ) );
+            var alert_zone = 50; // The alert will start the alert X before max_input_vars have been reached 
+            
+            var msg_near_limit = '<strong>' + translation_admin.max_fields_near_limit + '</strong> (' + input_vars + ' ' + translation_admin.of + ' ' + max_input_vars + ')<br /> ' + translation_admin.max_fields_todo;
+            var msg_over_limit = '<strong>' + translation_admin.max_fields_over_limit + '</strong> (' + input_vars + ' ' + translation_admin.of + ' ' + max_input_vars + ')<br /> ' + translation_admin.max_fields_todo;
+            
+            // console.log( 'Max input vars: ' + max_input_vars );
+            // console.log( 'Input vars: ' + input_vars );
+            
+            if( input_vars + alert_zone >= max_input_vars ){
+                $( "#questions-messages" )
+                  .removeClass( 'notice error updated' )
+                  .addClass( 'notice' )
+                  .html( '<p>' +  msg_near_limit + '</p>' )
+                  .show();
+            }
+            
+            if( input_vars >= max_input_vars ){
+                $( "#questions-messages" )
+                  .removeClass( 'notice error updated' )
+                  .addClass( 'error' )
+                  .html( '<p>' +  msg_over_limit + '</p>' )
+                  .show();
+            }
+        }
+        check_max_input_vars();
+	    
+	    /**
+	     * Making elements draggable
+	     */
 		$( "#survey-elements .surveyelement" ).draggable( { 
 			helper: 'clone',
 			cursor: "move",
@@ -14,12 +63,12 @@
 		    }
 		});
 		
+		/**
+		 * Setting up droppable and sortable areas
+		 */
 		$( "#drag-drop-inside" ).droppable({
 			accept: "#survey-elements .surveyelement",
 			drop: function( event, ui ) {
-				
-              	
-              	
 			}
 		}).sortable({
 			placeholder: 'survey-element-placeholder',
@@ -41,6 +90,7 @@
               	questions_deleteanswer();
               	questions_rewriteheadline();
               	questions_survey_element_tabs();
+              	check_max_input_vars();
 			},
 			update: function( event, ui ) {
 				var order = []; 
@@ -53,6 +103,62 @@
 			}
 		});
 		
+		/**
+         * Deleting survey element
+         */
+        var questions_delete_surveyelement = function(){
+            var questions_delete_surveyelement_dialog = $( '#delete_surveyelement_dialog' );
+            var surveyelement_id;
+            var deleted_surveyelements;
+            
+            questions_delete_surveyelement_dialog.dialog({                   
+                'dialogClass'   : 'wp-dialog',           
+                'modal'         : true,
+                'autoOpen'      : false, 
+                'closeOnEscape' : true,
+                'minHeight'     : 80,
+                'buttons'       : [{
+                        text: translation_admin.yes,
+                        click: function() {
+                                surveyelement_id = surveyelement_id.split( '_' );
+                                surveyelement_id = surveyelement_id[2];
+                                
+                                deleted_surveyelements = $( '#deleted_surveyelements' ).val();
+                                
+                                if( '' == deleted_surveyelements )
+                                    deleted_surveyelements += surveyelement_id;
+                                else
+                                    deleted_surveyelements += ',' + surveyelement_id;
+                                    
+                                $( '#deleted_surveyelements' ).val( deleted_surveyelements );
+                                $( '#widget_surveyelement_' + surveyelement_id ).remove();
+                                
+                                $( this ).dialog('close');
+                            }
+                        },
+                        {
+                        text: translation_admin.no,
+                        click: function() {
+                            
+                            $( this ).dialog( "close" );
+                            }
+                        },
+                    ],
+                    
+            });
+            
+            $( '.delete_survey_element' ).click( function( event ){
+                surveyelement_id = $( this ).closest( '.surveyelement' ).attr('id');
+                event.preventDefault();
+                questions_delete_surveyelement_dialog.dialog( 'open' );
+            });
+            check_max_input_vars();
+        }
+        questions_delete_surveyelement();
+		
+		/**
+		 * Making answers in questions sortable
+		 */
 		var questions_answersortable = function (){
 			$( "#drag-drop-inside .answers" ).sortable({
 				update: function(  event, ui ){
@@ -76,55 +182,9 @@
 		questions_answersortable();
 		
 		
-		var questions_delete_surveyelement = function(){
-			var questions_delete_surveyelement_dialog = $( '#delete_surveyelement_dialog' );
-			var surveyelement_id;
-			var deleted_surveyelements;
-			
-			questions_delete_surveyelement_dialog.dialog({                   
-		        'dialogClass'   : 'wp-dialog',           
-		        'modal'         : true,
-		        'autoOpen'      : false, 
-		        'closeOnEscape' : true,
-		        'minHeight'		: 80,
-		        'buttons'       : [{
-						text: translation_admin.yes,
-						click: function() {
-								surveyelement_id = surveyelement_id.split( '_' );
-								surveyelement_id = surveyelement_id[2];
-								
-								deleted_surveyelements = $( '#deleted_surveyelements' ).val();
-								
-								if( '' == deleted_surveyelements )
-									deleted_surveyelements += surveyelement_id;
-								else
-									deleted_surveyelements += ',' + surveyelement_id;
-									
-								$( '#deleted_surveyelements' ).val( deleted_surveyelements );
-								$( '#widget_surveyelement_' + surveyelement_id ).remove();
-								
-				                $( this ).dialog('close');
-							}
-						},
-						{
-						text: translation_admin.no,
-						click: function() {
-							
-							$( this ).dialog( "close" );
-							}
-						},
-					],
-					
-		    });
-			
-			$( '.delete_survey_element' ).click( function( event ){
-				surveyelement_id = $( this ).closest( '.surveyelement' ).attr('id');
-		        event.preventDefault();
-		        questions_delete_surveyelement_dialog.dialog( 'open' );
-			});
-		}
-		questions_delete_surveyelement();
-		
+		/**
+		 * Deleting answer
+		 */
 		var questions_deleteanswer = function(){
 			var questions_deletanswerdialog = $( '#delete_answer_dialog' );
 			var answer_id;
@@ -171,71 +231,74 @@
 		        event.preventDefault();
 		        questions_deletanswerdialog.dialog( 'open' );
 			});
+			check_max_input_vars();
 		}
 		questions_deleteanswer();
 		
-		var questions_rewriteheadline = function(){
-			$( ".questions-question" ).on( 'input', function(){
-				var element_id = $( this ).closest( '.widget' ).attr('id');
-				$( "#" +element_id + " .widget-title h4" ).text( $( this ).val() );
-			});
-		}
-		questions_rewriteheadline();
-		
-		var questions_add_answer = function(){
+		/**
+		 * Adding answer to element
+		 */
+		var questions_add_answer_button = function(){
 			$( "#drag-drop-inside" ).on( 'click', '.add-answer', function(){
-				
 				var element_id = $( this ).attr( 'rel' );
-				var nr = questions_rand();
-				
-				var preset_is_multiple = 'input[name="questions\[' + element_id + '\]\[preset_is_multiple\]"]';
-				var preset_is_multiple = $( preset_is_multiple ).val();
-				
-				var multiple_class = '';
-				if( preset_is_multiple == 'yes' ) multiple_class = ' preset_is_multiple';
-				
-				var sections = 'input[name="questions\[' + element_id + '\]\[sections\]"]';
-				var sections = $( sections ).val();
-				
-				var answer_content = '';
-				answer_content = '<div class="answer' + multiple_class + '" id="answer_##nr##">';
-				answer_content = answer_content + '<p><input type="text" id="answer_##nr##_input" name="questions[' + element_id + '][answers][id_##nr##][answer]" /></p>';
-				answer_content = answer_content + '<input type="hidden" name="questions[' + element_id + '][answers][id_##nr##][id]" /><input type="hidden" name="questions[' + element_id + '][answers][id_##nr##][sort]" />';
-				
-				if( 'yes' == sections ){
-					var section_key = $( this ).parent().find( 'input[name="section_key"]' ).val();
-					answer_content = answer_content + '<input type="hidden" name="questions[' + element_id + '][answers][id_##nr##][section]" value="' + section_key + '" />';
-				}
-				answer_content = answer_content + ' <input type="button" value="' + translation_admin.delete + '" class="delete_answer button answer_action"></div>';
-				answer_content = answer_content.replace( /##nr##/g, nr );
-				
-				var order = 0;
-				$( this ).parent().find( '.answer' ).each( function( e ) { order++; });
-				
-				if( 'yes' == sections ){
-					$( answer_content ).appendTo( "#" + element_id + " #section_" + section_key + " .answers" );
-				}else{
-					$( answer_content ).appendTo( "#" + element_id + " .answers" );
-				}
-				
-				var answer_input = $( "#answer_" + nr + "_input" );
-				answer_input.focus();
-				
-				// Adding sorting number
-				var input_name = 'input[name="questions\[' + element_id + '\]\[answers\]\[id_' + nr + '\]\[sort\]"]';
-	          	$( input_name ).val( order ) ;
-	          	
-	          	questions_deleteanswer();
+				questions_add_answer( element_id, this );
 			});
+			
+			check_max_input_vars();
 		}
-		questions_add_answer();
+		questions_add_answer_button();
 		
-		var questions_survey_element_tabs = function(){
-			$( ".survey_element_tabs" ).tabs({ active: 0 });
-		}
-		questions_survey_element_tabs();
+		$( ".question-answer" ).keypress( function( e ) {
+            if( e.which == 13 ) {
+                e.preventDefault();
+                var add_answer = $( this ).parent().find( '.add_answer ');
+                
+            }
+        });
+        
+        /**
+         * Adding empty answer field
+         */
+        var questions_add_answer = function ( element_id, clicked_container ){
+            var nr = questions_rand();
+
+            var sections = 'input[name="questions\[' + element_id + '\]\[sections\]"]';
+            var sections = $( sections ).val();
+            
+            // Setting up new answer HTML
+            var answer_content = '';
+            answer_content = '<div class="answer" id="answer_##nr##">';
+            answer_content = answer_content + '<p><input type="text" id="answer_##nr##_input" name="questions[' + element_id + '][answers][id_##nr##][answer]" /></p>';
+            answer_content = answer_content + '<input type="hidden" name="questions[' + element_id + '][answers][id_##nr##][id]" /><input type="hidden" name="questions[' + element_id + '][answers][id_##nr##][sort]" />';
+            if( 'yes' == sections ){
+                var section_key = $( clicked_container ).parent().find( 'input[name="section_key"]' ).val();
+                answer_content = answer_content + '<input type="hidden" name="questions[' + element_id + '][answers][id_##nr##][section]" value="' + section_key + '" />';
+            }
+            answer_content = answer_content + ' <input type="button" value="' + translation_admin.delete + '" class="delete_answer button answer_action"></div>';
+            answer_content = answer_content.replace( /##nr##/g, nr );
+            
+            // Getting order number for new answer
+            var order = 0;
+            $( clicked_container ).parent().find( '.answer' ).each( function( e ) { order++; });
+            
+            // Adding Content
+            if( 'yes' == sections ){
+                $( answer_content ).appendTo( "#" + element_id + " #section_" + section_key + " .answers" );
+            }else{
+                $( answer_content ).appendTo( "#" + element_id + " .answers" );
+            }
+            
+            var answer_input = $( "#answer_" + nr + "_input" );
+            answer_input.focus();
+            
+            // Adding sorting number
+            var input_name = 'input[name="questions\[' + element_id + '\]\[answers\]\[id_' + nr + '\]\[sort\]"]';
+            $( input_name ).val( order ) ;
+            
+            questions_deleteanswer();
+        };
 		
-		/*
+		/**
 		 * Members - Participiants restrictions select
 		 */
 		var questions_participiants_restrictions_select = $( "#questions-participiants-restrictions-select" ).val();
@@ -253,7 +316,7 @@
 			}
 		});
 		
-		/*
+		/**
 		 * Members - Member select
 		 */
 		var questions_participiants_select = $( "#questions-participiants-select" ).val();
@@ -278,10 +341,9 @@
 			$( "#questions-participiants-list" ).hide();
 		}
 		
-		/*
+		/**
 		 * Members - Adding Participiants
 		 */
-		
 		$.questions_add_participiants = function( response ){
 			var questions_participiants_old = $( "#questions-participiants" ).val();
 			questions_participiants_old = questions_participiants_old.split( ',' );
@@ -314,12 +376,37 @@
 			$.questions_delete_participiant();	
 		}
 		
+		/**
+         * Adding all existing members to participiants list
+         */
+        $( "#questions-add-members-standard" ).click( function(){
+            
+            var data = {
+                action: 'questions_add_members_standard'
+            };
+            
+            var button = $( this )
+            button.addClass( 'button-loading' );
+        
+            $.post( ajaxurl, data, function( response ) {
+                response = jQuery.parseJSON( response );
+                $.questions_add_participiants( response );
+                button.removeClass( 'button-loading' );
+            });
+        });
+		
+		/**
+		 * Counting participiants
+		 */
 		$.questions_participiants_counter = function( number ){
 			var text = number + ' ' + translation_admin.added_participiants;
 			$( "#questions-participiants-status p").html( text );
 			$( "#questions-participiants-count" ).val( number );
 		}
 		
+		/**
+		 * Removing participiant from list
+		 */
 		$.questions_delete_participiant = function(){
 			$( ".questions-delete-participiant" ).click( function(){
 				var delete_user_id = $( this ).attr( 'rel' );
@@ -350,28 +437,17 @@
 		}
 		$.questions_delete_participiant();
 		
-		$( "#questions-add-members-standard" ).click( function(){
-			
-			var data = {
-				action: 'questions_add_members_standard'
-			};
-			
-			var button = $( this )
-			button.addClass( 'button-loading' );
-		
-			$.post( ajaxurl, data, function( response ) {
-				response = jQuery.parseJSON( response );
-				$.questions_add_participiants( response );
-				button.removeClass( 'button-loading' );
-			});
-		});
-		
-		
+		/**
+		 * Removing all Participiants from list
+		 */
 		$( ".questions-remove-all-participiants" ).click( function(){
 			$( "#questions-participiants" ).val( '' );
 			$( "#questions-participiants-list tbody tr" ).remove();
 		});
 		
+		/**
+		 * Invite participiants
+		 */
 		$( '#questions-invite-button' ).click( function(){
 			
 			var button = $( this )
@@ -471,8 +547,10 @@
 			$( '#questions-reinvite-button-cancel' ).fadeOut( 200 );
 		});
 		
-		
-		$( '#questions-duplicate-survey' ).click( function(){
+		/**
+		 * Dublicate survey
+		 */
+		$( '#questions-duplicate-button' ).click( function(){
 			var button = $( this )
 			
 			if( button.hasClass( 'button' ) ){
@@ -487,9 +565,7 @@
 					response = jQuery.parseJSON( response );
 					
 					var response_text = translation_admin.duplicate_survey_successfully + '<br /><a href="' + response.admin_url + '">' + translation_admin.edit_survey + '</a>';
-					
 					button.after( '<p class="survey-duplicated-survey">' + response_text + '</p>' );
-					
 					button.removeClass( 'button-loading' );
 					
 					$( '.survey-duplicated-survey' ).fadeOut( 20000 );
@@ -499,13 +575,38 @@
 				button.addClass( 'button' );
 			}
 		});
-			
+		
+		/**
+         * Initializing jquery tabs in elements
+         */
+        var questions_survey_element_tabs = function(){
+            $( ".survey_element_tabs" ).tabs({ active: 0 });
+        }
+        questions_survey_element_tabs();
+		
+		/**
+		 * Live typing of element headline
+		 */
+		var questions_rewriteheadline = function(){
+            $( ".questions-question" ).on( 'input', function(){
+                var element_id = $( this ).closest( '.widget' ).attr('id');
+                $( "#" +element_id + " .widget-title h4" ).text( $( this ).val() );
+            });
+        }
+        questions_rewriteheadline();
+		
+		/**
+		 * Helper function - Getting a random number
+		 */
 		function questions_rand(){
 			var now = new Date();
 			var random = Math.floor(Math.random() * ( 10000 - 10 + 1)) + 10;
 			return random * now.getTime();
 		}
 		
+		/**
+         * Helper function - JS recreating of PHP in_array function
+         */
 		function in_array( needle, haystack ) {
 		    var length = haystack.length;
 		    for(var i = 0; i < length; i++) {
@@ -513,7 +614,5 @@
 		    }
 		    return false;
 		}
-		
-		// $( ".drag-drop-inside" ).disableSelection();
 	});
 }(jQuery));
