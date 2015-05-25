@@ -28,12 +28,6 @@ class Questions_SurveyElement_Description extends Questions_SurveyElement {
 	}
 
 	public function input_html() {
-
-		$html = '<div class="survey-element survey-element-' . $this->id . '">';
-		$html .= '<div class="survey-description">' . $this->settings[ 'description' ] . '</div>';
-		$html .= '</div>';
-
-		return $html;
 	}
 
 	public function settings_fields() {
@@ -41,7 +35,7 @@ class Questions_SurveyElement_Description extends Questions_SurveyElement {
 		$this->settings_fields = array(
 			'description' => array(
 				'title'       => esc_attr__( 'Text to show', 'questions-locale' ),
-				'type'        => 'textarea',
+				'type'        => 'wp_editor',
 				'description' => esc_attr__( 'The text which will be shown in the form.', 'questions-locale' ),
 				'default'     => ''
 			)

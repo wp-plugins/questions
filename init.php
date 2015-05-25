@@ -3,7 +3,7 @@
  * Plugin Name:  Questions
  * Plugin URI:   http://www.awesome.ug
  * Description:  Drag & drop your survey/poll with the WordPress Questions plugin.
- * Version:      1.0.0 beta 12
+ * Version:      1.0.0 beta 13
  * Author:       awesome.ug
  * Author URI:   http://www.awesome.ug
  * Author Email: contact@awesome.ug
@@ -38,6 +38,10 @@ class Questions_Init {
 		register_activation_hook( __FILE__, array( __CLASS__, 'activate' ) );
 		register_deactivation_hook( __FILE__, array( __CLASS__, 'deactivate' ) );
 		register_uninstall_hook( __FILE__, array( __CLASS__, 'uninstall' ) );
+		
+		// If plugin isn't installed, install it now
+		if( !self::is_installed() )
+			add_action( 'init', array( __CLASS__, 'install_plugin' ), 100  );
 
 		// Functions on Frontend
 		if ( is_admin() ):
@@ -74,9 +78,57 @@ class Questions_Init {
 	 * @since 1.0.0
 	 */
 	public static function activate( $network_wide ) {
-
 		global $wpdb;
-
+		
+		self::install_tables();
+	} // end activate
+	
+	/**
+	 * Is plugin already installed?
+	 */
+	public static function is_installed(){
+		global $wpdb;
+		
+		$tables = array(		
+			$wpdb->prefix . 'questions_questions',
+			$wpdb->prefix . 'questions_answers',
+			$wpdb->prefix . 'questions_responds',
+			$wpdb->prefix . 'questions_respond_answers',
+			$wpdb->prefix . 'questions_settings',
+			$wpdb->prefix . 'questions_participiants'
+		);
+		
+		// Checking if all tables are existing
+		$not_found = FALSE;
+		foreach( $tables AS $table ):
+			if( $wpdb->get_var( "SHOW TABLES LIKE '$table'" ) != $table ):
+			    $not_found = TRUE;
+			endif;
+		endforeach;
+		
+		$is_installed_option = (boolean) get_option( 'questions_is_installed', FALSE );
+		
+		if( $not_found || FALSE == $is_installed_option )
+			return FALSE;
+		
+		return TRUE;
+	}
+	
+	/**
+	 * Installing plugin
+	 */
+	public static function install_plugin(){
+		self::install_tables();
+		flush_rewrite_rules();
+		update_option( 'questions_is_installed', TRUE );
+	}
+	
+	/**
+	 * Creating / Updating tables
+	 */
+	public static function install_tables(){
+		global $wpdb;
+		
 		require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 
 		$table_questions       = $wpdb->prefix . 'questions_questions';
@@ -168,8 +220,7 @@ class Questions_Init {
 		$wpdb->query( $sql );
 
 		update_option( 'questions_db_version', '1.1.0' );
-
-	} // end activate
+	}
 
 	/**
 	 * Fired when the plugin is deactivated.
@@ -178,6 +229,8 @@ class Questions_Init {
 	 *                                 disabled or plugin is activated on an individual blog
 	 */
 	public static function deactivate( $network_wide ) {
+		
+		delete_option( 'questions_is_installed' );
 	} // end deactivate
 
 	/**

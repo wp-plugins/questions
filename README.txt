@@ -68,6 +68,16 @@ twitter: http://twitter.com/awsmug - GitHub: https://github.com/awsmug
 
 == Changelog ==
 
+= 1.0.0 beta 13 =
+* Making Questions Multisite-Ready
+* Flushing rewrite rules correct
+* Added WP Editor to settings API
+* Changed description editor to WP Editor
+* Moved description text under question, before fields
+* Fixed bug on double description output
+* Bettered up Plugin CSS
+* Enhanced code structure
+
 = 1.0.0 beta 12 =
 * Fixed exporting bug on exporting multiple choice fields results
 * Enhanced code structure
