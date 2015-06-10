@@ -68,6 +68,10 @@ twitter: http://twitter.com/awsmug - GitHub: https://github.com/awsmug
 
 == Changelog ==
 
+= 1.0.0 beta 14 =
+* Added missing columns on export if an answer was not given
+* Removed WP Editor from Settings API and descriptions because of massive problems with WP Editor and jQuery droppables.
+
 = 1.0.0 beta 13 =
 * Making Questions Multisite-Ready
 * Flushing rewrite rules correct
