@@ -3,7 +3,7 @@ Contributors: mahype, awesome-ug
 Donate link: http://awesome.ug/donate
 Tags: survey, surveys, polls, poll, create poll, custom poll, online poll, custom survey, online survey, votes, voting, wp polls, wp survey, yop poll, online survey, online poll
 Requires at least: 4.1.1
-Tested up to: 4.1.1
+Tested up to: 4.2.2
 Stable tag: 1.0.0
 
 Drag&Drop surveys / polls in WordPress.
@@ -67,6 +67,14 @@ twitter: http://twitter.com/awsmug - GitHub: https://github.com/awsmug
 7. **Setup templates for inviting and remembering mails**
 
 == Changelog ==
+
+= 1.0.0 beta 15 =
+* Only showing steps if there is more then one step
+* Results can be deleted
+* Stripping slashes on exporting CSV
+* Showing error messages if there is no answer given
+* Switched to Charts.js
+* Refactored file structure
 
 = 1.0.0 beta 14 =
 * Added missing columns on export if an answer was not given

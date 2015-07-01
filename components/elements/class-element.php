@@ -1,10 +1,34 @@
 <?php
 /**
- * Element API Class
- * 
- * Parent class of all elements
- * 
+ * Elements abstraction class
+ *
+ * Motherclass for element creation
+ *
+ * @author awesome.ug, Author <support@awesome.ug>
+ * @package Questions/Core
+ * @version 1.0.0
+ * @since 1.0.0
+ * @license GPL 2
+
+Copyright 2015 awesome.ug (support@awesome.ug)
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License, version 2, as
+published by the Free Software Foundation.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
+
  */
+
+if ( !defined( 'ABSPATH' ) ) exit;
+
 abstract class Questions_SurveyElement {
 	
 	/**
@@ -306,11 +330,7 @@ abstract class Questions_SurveyElement {
 	public function draw() {
 	
 		global $questions_response_errors;
-	
-		if ( 0 == count( $this->answers ) && $this->has_answers == TRUE ) {
-			return FALSE;
-		}
-	
+
 		$errors = '';
 		if ( is_array( $questions_response_errors ) && array_key_exists( $this->id, $questions_response_errors ) ) {
 			$errors = $questions_response_errors[ $this->id ];
@@ -354,7 +374,15 @@ abstract class Questions_SurveyElement {
 		$this->get_response();
 	
 		$html .= '<div class="answer">';
-		$html .= $this->input_html();
+
+        if ( 0 == count( $this->answers ) && $this->has_answers == TRUE ) {
+            $html.= '<p>' . esc_attr__(
+                'You don´t entered any answers. Please add some to display answers here.', 'questions-locale'
+            ) . '</p>';
+        }else {
+            $html .= $this->input_html();
+        }
+
 		$html .= '</div>';
 	
 		// End Echo Errors
