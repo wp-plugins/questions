@@ -41,7 +41,7 @@ Drag & drop your survey in the WordPress way!
 * Persian (Thanks to Hos3in)
 * Swedish (Thanks to Elger Lindgren)
 
-> Feel free to add your own language! We will add it to the code if you send us language files in your language.
+>Feel free to add your own language! We will add it to the code if you send us language files in your language.
 
 **Bug Reporting**
 
