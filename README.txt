@@ -10,9 +10,8 @@ Drag&Drop surveys / polls in WordPress.
 
 == Description ==
 
-**Drag & drop your survey in the WordPress way!**
-
-It never felt better to create your survey like with this plugin. Do your survey and own the survey data. This is not software as a service, Questions is a totally independent and free plugin.
+>**Drag & drop your survey in the WordPress way!**
+>It never felt better to create your survey like with this plugin. Do your survey and own the survey data. This is not software as a service, Questions is a totally independent and free plugin.
 
 **Elements**
 
