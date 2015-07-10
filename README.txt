@@ -14,7 +14,7 @@ Drag & drop your survey in the WordPress way!
 >
 >It never felt better to create your survey like with this plugin. Do your survey and own the survey data. This is not software as a service, Questions is a totally independent and free plugin.
 
-**Elements**
+**Elements to drop**
 
 * **Text** - Simple text input.
 * **Textarea** - Multiple line text input.
@@ -41,7 +41,7 @@ Drag & drop your survey in the WordPress way!
 * Persian (Thanks to Hos3in)
 * Swedish (Thanks to Elger Lindgren)
 
-Feel free to add your own language. We will add it to the code if you send us language files in your language.
+> Feel free to add your own language! We will add it to the code if you send us language files in your language.
 
 **Bug Reporting**
 
