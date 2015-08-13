@@ -3,10 +3,10 @@ Contributors: mahype, awesome-ug
 Donate link: http://awesome.ug/donate
 Tags: survey, surveys, polls, poll, create poll, custom poll, online poll, custom survey, online survey, votes, voting, wp polls, wp survey, yop poll, online survey, online poll, survey form, data collection, questions
 Requires at least: 4.1.1
-Tested up to: 4.2.2
+Tested up to: 4.3.0
 Stable tag: 1.0.0
 
-Drag & drop your survey in the WordPress way! 
+Drag & drop your survey in the WordPress way!
 
 == Description ==
 
@@ -37,9 +37,11 @@ Drag & drop your survey in the WordPress way!
 
 * English
 * German
-* Dutch (Thanks to Remco Wesselius)
+* Dutch (Thanks to [@remcow])
+* Italian (Thanks to Giovanni Simiani)
 * Persian (Thanks to Hos3in)
-* Swedish (Thanks to Elger Lindgren)
+* Russian (Thanks to [@kosm])
+* Swedish (Thanks to [@elle_])
 
 >Feel free to add your own language! We will add it to the code if you send us language files in your language.
 
@@ -70,6 +72,13 @@ twitter: http://twitter.com/awsmug - GitHub: https://github.com/awsmug
 7. **Setup templates for inviting and remembering mails**
 
 == Changelog ==
+
+= 1.0.0 beta 19 =
+* Added russian language files (Thanks to [@kosm])
+* Added italian language files (Thanks to Giovanni Simiani)
+* No export if no results
+* Refactored code
+* Also dublicating terms for form
 
 = 1.0.0 beta 18 =
 * Added timerange
@@ -122,7 +131,7 @@ twitter: http://twitter.com/awsmug - GitHub: https://github.com/awsmug
 
 = 1.0.0 beta 10 =
 * Enhanced code structure
-* Added Dutch language files (Thanks to Remco Wesselius)
+* Added Dutch language files (Thanks to [@remcow])
 * Also showing questions if question text not have been filled in
 * Reworked Drag&Drop area to be sortable from the first drop
 * Preparing data after submitting
@@ -134,9 +143,9 @@ twitter: http://twitter.com/awsmug - GitHub: https://github.com/awsmug
 * Added pariticipiants option "No restrictions"
 * Added filters for default on $participiants_restrictions
 * Added filters for texts
-* Added swedish language files (Thanks to Remco Wesselius)
+* Added swedish language files (Thanks to [@elle_])
 * Added persian language files (Thanks to Hos3in)
-* Code enhancements (Thanks to Frank Bültge)
+* Code enhancements (Thanks to [@bueltge])
 
 = 1.0.0 beta 7 =
 * Fixed problems with errors on further steps

@@ -31,23 +31,23 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-global $Questions_ProcessResponse;
-
-class Questions_ProcessResponse {
+class Questions_FormProcess{
 
 	/**
-	 * Survey id of processed survey
+	 * ID of processed form
 	 */
-	var $survey_id;
+	var $form_id;
 
 	/**
-	 * Is survey fineshed?
+	 * Is form processing fineshed
 	 */
 	var $finished = FALSE;
 
+
 	var $finished_id;
 
-	var $respond_id;
+
+	var $response_id;
 
 	/**
 	 * Initializes the Component.
@@ -84,19 +84,19 @@ class Questions_ProcessResponse {
 
 		global $post, $questions_response_errors;
 
+        // If is no questions form > Exit
+        if ( 'questions' != $post->post_type )
+            return $content;
+
 		// Set global message on top of page
 		if ( ! empty( $questions_response_errors ) ) {
-			$html = '<div class="questions-element-error">';
+			$html  = '<div class="questions-element-error">';
 			$html .= '<div class="questions-element-error-message"><p>';
 			$html .= esc_attr__( 'There are open answers', 'questions-locale' );
 			$html .= '</p></div></div>';
-			$html = apply_filters( 'questions_draw_global_error', $html, $this );
+			$html  = apply_filters( 'questions_draw_global_error', $html, $this );
 
 			echo $html;
-		}
-
-		if ( 'questions' != $post->post_type ) {
-			return $content;
 		}
 
 		$content = $this->show_survey( $post->ID );
@@ -107,42 +107,134 @@ class Questions_ProcessResponse {
 	}
 
 	/**
-	 * Showing survey
+	 * Showing form
 	 *
-	 * @param int $survey_id
+	 * @param int $form_id
 	 * @return string $survey_html
 	 * @since 1.0.0
 	 */
-	public function show_survey( $survey_id ) {
+	public function show_survey( $form_id ) {
 
-        $checked_restrictions = $this->check_restrictions( $survey_id );
-        $checked_timerange = $this->check_timerange( $survey_id );
+        $checked_restrictions = $this->check_restrictions( $form_id );
+        $checked_timerange = $this->check_timerange( $form_id );
 
 		if ( TRUE === $checked_restrictions && TRUE === $checked_timerange ):
 
-			return $this->survey_form( $survey_id );
+			return $this->survey_form( $form_id );
+
 		elseif( TRUE !== $checked_restrictions ):
 
             return $checked_restrictions;
+
         elseif( TRUE !== $checked_timerange ):
 
             return $checked_timerange;
+
 		endif;
 	}
+
+    /**
+     * Survey form
+     *
+     * Creating form HTML
+     *
+     * @param int $form_id
+     * @return string $html
+     * @since 1.0.0
+     */
+    private function survey_form( $form_id ) {
+
+        global $questions_response_errors, $questions_survey_id;
+        $questions_survey_id = $form_id;
+
+        $form = new Questions_Form( $form_id );
+
+        do_action( 'before_survey_form' );
+
+        if ( array_key_exists( 'questions_next_step', $_POST ) && 0 == count( $questions_response_errors ) ):
+            $next_step = (int) $_POST[ 'questions_next_step' ];
+        else:
+            if ( array_key_exists( 'questions_actual_step', $_POST ) ):
+                $next_step = (int) $_POST[ 'questions_actual_step' ];
+            else:
+                $next_step = 0;
+            endif;
+        endif;
+
+        if ( array_key_exists( 'questions_submission_back', $_POST ) ):
+            $next_step = (int) $_POST[ 'questions_actual_step' ] - 1;
+        endif;
+
+        $actual_step = $next_step;
+
+        $html = '<form name="questions" id="questions" action="' . $_SERVER[ 'REQUEST_URI' ] . '" method="POST">';
+        $html.= '<input type="hidden" name="_wpnonce" value="' .  wp_create_nonce( 'questions-' . $form_id ) . '" />';
+
+        $step_count = $form->get_step_count();
+
+        if( 0 != $step_count ):
+
+            $html .= '<div class="questions-pagination">' . sprintf(
+                    __(
+                        'Step <span class="questions-highlight-number">%d</span> of <span class="questions-highlight-number">%s</span>',
+                        'questions-locale'
+                    ), $actual_step + 1, $step_count + 1
+                ) . '</div>';
+        endif;
+
+        $elements = $this->get_elements( $form_id, $actual_step );
+
+        if ( is_array( $elements ) && count( $elements ) > 0 ):
+            foreach ( $elements AS $element ):
+                if ( ! $element->splits_form ):
+                    $html .= $element->draw();
+                else:
+                    $next_step += 1;
+                    break;
+                endif;
+            endforeach;
+        else:
+            return FALSE;
+        endif;
+
+        if ( 0 < $actual_step ):
+            $html .= '<input type="submit" name="questions_submission_back" value="' . __(
+                    'Previous Step', 'questions-locale'
+                ) . '"> ';
+        endif;
+
+        if ( $actual_step == $next_step ):
+            $html .= '<input type="submit" name="questions_submission" value="' . __(
+                    'Finish Survey', 'questions-locale'
+                ) . '">';
+        else:
+            $html .= '<input type="submit" name="questions_submission" value="' . __(
+                    'Next Step', 'questions-locale'
+                ) . '">';
+        endif;
+
+        $html .= '<input type="hidden" name="questions_next_step" value="' . $next_step . '" />';
+        $html .= '<input type="hidden" name="questions_actual_step" value="' . $actual_step . '" />';
+        $html .= '<input type="hidden" name="questions_id" value="' . $form_id . '" />';
+
+        $html .= '</form>';
+
+        return $html;
+    }
 
     /**
      * Check Timerange
      *
      * Checking if the survey has not yet begun or is already over
      *
-     * @param int $survey_id
+     * @param int $form_id
      * @return mixed $intime
      * @since 1.0.0
      */
-    private function check_timerange( $survey_id ){
+    private function check_timerange( $form_id ){
         $actual_date = time();
-        $start_date = strtotime( get_post_meta( $survey_id, 'start_date', TRUE ) );
-        $end_date = strtotime( get_post_meta( $survey_id, 'end_date', TRUE ) );
+        $start_date = strtotime( get_post_meta( $form_id, 'start_date', TRUE ) );
+        $end_date = strtotime( get_post_meta( $form_id, 'end_date', TRUE ) );
 
         if( '' != $start_date  && 0 != (int)$start_date && FALSE != $start_date && $actual_date < $start_date ){
             $html = '<div id="questions-out-of-timerange">';
@@ -166,13 +258,13 @@ class Questions_ProcessResponse {
 	 *
 	 * Checking restrictions if user can participate
 	 *
-	 * @param int $survey_id
+	 * @param int $form_id
 	 * @return mixed $participate True
 	 * @since 1.0.0
 	 */
-	private function check_restrictions( $survey_id ) {
+	private function check_restrictions( $form_id ) {
 
-		$participiant_restrictions = get_post_meta( $survey_id, 'participiant_restrictions', TRUE );
+		$participiant_restrictions = get_post_meta( $form_id, 'participiant_restrictions', TRUE );
 
 		switch ( $participiant_restrictions ) {
 
@@ -181,12 +273,12 @@ class Questions_ProcessResponse {
 			 */
 			case 'all_visitors':
 
-				if ( $this->finished && $this->finished_id == $survey_id ):
-					return $this->text_thankyou_for_participation( $survey_id );
+				if ( $this->finished && $this->finished_id == $form_id ):
+					return $this->text_thankyou_for_participation( $form_id );
 				endif;
 
-				if ( $this->ip_has_participated( $survey_id ) ):
-					return $this->text_already_participated( $survey_id );
+				if ( $this->ip_has_participated( $form_id ) ):
+					return $this->text_already_participated( $form_id );
 				endif;
 
 				return TRUE;
@@ -204,15 +296,15 @@ class Questions_ProcessResponse {
 				endif;
 
 				// If user user has finished successfull
-				if ( $this->finished && $this->finished_id == $survey_id ):
+				if ( $this->finished && $this->finished_id == $form_id ):
 					$this->email_finished();
 
-					return $this->text_thankyou_for_participation( $survey_id );
+					return $this->text_thankyou_for_participation( $form_id );
 				endif;
 
 				// If user has already participated
-				if ( $this->has_participated( $survey_id ) ):
-					return $this->text_already_participated( $survey_id );
+				if ( $this->has_participated( $form_id ) ):
+					return $this->text_already_participated( $form_id );
 				endif;
 
 				return TRUE;
@@ -229,19 +321,19 @@ class Questions_ProcessResponse {
 				endif;
 
 				// If user user has finished successfull
-				if ( $this->finished && $this->finished_id == $survey_id ):
+				if ( $this->finished && $this->finished_id == $form_id ):
 					$this->email_finished();
 
-					return $this->text_thankyou_for_participation( $survey_id );
+					return $this->text_thankyou_for_participation( $form_id );
 				endif;
 
 				// If user has already participated
-				if ( $this->has_participated( $survey_id ) ):
-					return $this->text_already_participated( $survey_id );
+				if ( $this->has_participated( $form_id ) ):
+					return $this->text_already_participated( $form_id );
 				endif;
 
 				// If user can't participate the poll
-				if ( ! $this->user_can_participate( $survey_id ) ):
+				if ( ! $this->user_can_participate( $form_id ) ):
 					return $this->text_cant_participate();
 				endif;
 
@@ -253,113 +345,90 @@ class Questions_ProcessResponse {
 			 */
 			default:
 				// If user user has finished successfull
-				if ( $this->finished && $this->finished_id == $survey_id ):
-					return $this->text_thankyou_for_participation( $survey_id );
+				if ( $this->finished && $this->finished_id == $form_id ):
+					return $this->text_thankyou_for_participation( $form_id );
 				endif;
 
-				return apply_filters( 'questions_check_restrictions', TRUE, $survey_id, $participiant_restrictions );
+				return apply_filters( 'questions_check_restrictions', TRUE, $form_id, $participiant_restrictions );
 
 				break;
 		}
 	}
 
-	/**
-	 * Survey form
-	 *
-	 * Creating form HTML
-	 *
-	 * @param int $survey_id
-	 * @return string $html
-	 * @since 1.0.0
-	 */
-	private function survey_form( $survey_id ) {
+    /**
+     * Has the user participated survey
+     *
+     * @param $questions_id
+     * @param int $user_id
+     * @return boolean $has_participated
+     * @since 1.0.0
+     */
+    public function has_participated( $form_id, $user_id = NULL ) {
 
-		global $questions_response_errors, $questions_survey_id;
-		$questions_survey_id = $survey_id;
+        global $wpdb, $current_user, $questions_global;
 
-		do_action( 'before_survey_form' );
+        // Setting up user ID
+        if ( NULL == $user_id ):
+            get_currentuserinfo();
+            $user_id = $user_id = $current_user->ID;
+        endif;
 
-		if ( array_key_exists( 'questions_next_step', $_POST ) && 0 == count( $questions_response_errors ) ):
-			$next_step = (int) $_POST[ 'questions_next_step' ];
-		else:
-			if ( array_key_exists( 'questions_actual_step', $_POST ) ):
-				$next_step = (int) $_POST[ 'questions_actual_step' ];
-			else:
-				$next_step = 0;
-			endif;
-		endif;
+        // Setting up Form ID
+        if ( NULL == $form_id ) {
+            return FALSE;
+        }
 
-		if ( array_key_exists( 'questions_submission_back', $_POST ) ):
-			$next_step = (int) $_POST[ 'questions_actual_step' ] - 1;
-		endif;
+        $sql   = $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$questions_global->tables->responds} WHERE questions_id=%d AND user_id=%s",
+            $form_id, $user_id
+        );
+        $count = $wpdb->get_var( $sql );
 
-		$actual_step = $next_step;
+        if ( 0 == $count ):
+            return FALSE;
+        else:
+            return TRUE;
+        endif;
+    }
 
-		$html = '<form name="questions" id="questions" action="' . $_SERVER[ 'REQUEST_URI' ] . '" method="POST">';
+    /**
+     * Has IP already participated
+     *
+     * @param $questions_id
+     * @return bool $has_participated
+     * @since 1.0.0
+     *
+     */
+    public function ip_has_participated( $form_id ) {
 
-        $html.= '<input type="hidden" name="_wpnonce" value="' .  wp_create_nonce( 'questions-' . $survey_id ) . '" />';
+        global $wpdb, $questions_global;
 
-		$step_count = $this->get_step_count( $survey_id );
-		
-		if( 0 != $step_count ):
-			
-			$html .= '<div class="questions-pagination">' . sprintf(
-					__(
-						'Step <span class="questions-highlight-number">%d</span> of <span class="questions-highlight-number">%s</span>',
-						'questions-locale'
-					), $actual_step + 1, $step_count + 1
-				) . '</div>';
-		endif;
+        $remote_ip = $_SERVER[ 'REMOTE_ADDR' ];
 
-		$elements = $this->get_elements( $survey_id, $actual_step );
+        $sql   = $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$questions_global->tables->responds} WHERE questions_id=%d AND remote_addr=%s",
+            $form_id, $remote_ip
+        );
+        $count = $wpdb->get_var( $sql );
 
-		if ( is_array( $elements ) && count( $elements ) > 0 ):
-			foreach ( $elements AS $element ):
-				if ( ! $element->splits_form ):
-					$html .= $element->draw();
-				else:
-					$next_step += 1;
-					break;
-				endif;
-			endforeach;
-		else:
-			return FALSE;
-		endif;
+        if ( 0 == $count ):
+            return FALSE;
+        else:
+            return TRUE;
+        endif;
+    }
 
-		if ( 0 < $actual_step ):
-			$html .= '<input type="submit" name="questions_submission_back" value="' . __(
-					'Previous Step', 'questions-locale'
-				) . '"> ';
-		endif;
 
-		if ( $actual_step == $next_step ):
-			$html .= '<input type="submit" name="questions_submission" value="' . __(
-					'Finish Survey', 'questions-locale'
-				) . '">';
-		else:
-			$html .= '<input type="submit" name="questions_submission" value="' . __(
-					'Next Step', 'questions-locale'
-				) . '">';
-		endif;
-
-		$html .= '<input type="hidden" name="questions_next_step" value="' . $next_step . '" />';
-		$html .= '<input type="hidden" name="questions_actual_step" value="' . $actual_step . '" />';
-		$html .= '<input type="hidden" name="questions_id" value="' . $survey_id . '" />';
-
-		$html .= '</form>';
-
-		return $html;
-	}
 
 	/**
 	 * Checks if a user can participate
 	 *
-	 * @param int $survey_id
+	 * @param int $form_id
 	 * @param int $user_id
 	 * @return boolean $can_participate
 	 * @since 1.0.0
 	 */
-	public function user_can_participate( $survey_id, $user_id = NULL ) {
+	public function user_can_participate( $form_id, $user_id = NULL ) {
 
 		global $wpdb, $current_user, $questions_global;
 
@@ -371,40 +440,26 @@ class Questions_ProcessResponse {
 			$user_id = $user_id = $current_user->ID;
 		endif;
 
-        $sql = $wpdb->prepare( "SELECT user_id FROM {$questions_global->tables->participiants} WHERE survey_id = %d", $survey_id );
+        $sql = $wpdb->prepare( "SELECT user_id FROM {$questions_global->tables->participiants} WHERE survey_id = %d", $form_id );
         $user_ids = $wpdb->get_col( $sql );
 
         if( in_array( $user_id, $user_ids  ) )
 		    $can_participate = TRUE;
 
-		return apply_filters( 'questions_user_can_participate', $can_participate, $survey_id, $user_id );
-	}
-
-	/**
-	 * Get numer of spits in survey
-	 *
-	 * @param int $survey_id
-	 * @return int $splitter_count
-	 * @since 1.0.0
-	 */
-	private function get_step_count( $survey_id ) {
-
-		$survey = new Questions_Survey( $survey_id );
-
-		return (int) $survey->splitter_count;
+		return apply_filters( 'questions_user_can_participate', $can_participate, $form_id, $user_id );
 	}
 
 	/**
 	 * Getting elements of a survey
 	 *
-	 * @param int $survey_id
+	 * @param int $form_id
 	 * @param int $step
 	 * @return array $elements
 	 * @since 1.0.0
 	 */
-	public function get_elements( $survey_id, $step = 0 ) {
+	public function get_elements( $form_id, $step = 0 ) {
 
-		$survey = new Questions_Survey( $survey_id );
+		$survey = new Questions_Form( $form_id );
 
 		$actual_step = 0;
 
@@ -431,7 +486,7 @@ class Questions_ProcessResponse {
 
 		global $questions_survey_id;
 
-		// Survey ID was posted or die
+		// Form ID was posted or die
 		if ( ! array_key_exists( 'questions_id', $_POST ) )
 			return;
 
@@ -442,23 +497,20 @@ class Questions_ProcessResponse {
             return;
 
 		// Survey exists or die
-		if ( ! qu_survey_exists( $questions_survey_id ) )
+		if ( ! qu_form_exists( $questions_survey_id ) )
 			return;
 
 		// Checking restrictions
-		if ( TRUE !== $this->check_restrictions( $questions_survey_id ) ) {
+		if ( TRUE !== $this->check_restrictions( $questions_survey_id ) )
 			return;
-		}
 
-		// Getting Session Data
-		if ( ! isset( $_SESSION ) ) {
+		// Setting up session if not exists
+		if ( ! isset( $_SESSION ) )
 			session_start();
-		}
 
 		// If session has data, get it!
-		if ( isset( $_SESSION[ 'questions_response' ] ) ) {
+		if ( isset( $_SESSION[ 'questions_response' ] ) )
 			$saved_response = $_SESSION[ 'questions_response' ][ $questions_survey_id ];
-		}
 
 		do_action( 'questions_before_process_response', $_POST );
 
@@ -515,12 +567,7 @@ class Questions_ProcessResponse {
 			return;
 		}
 
-		if ( (int) $_POST[ 'questions_actual_step' ] == (int) $_POST[ 'questions_next_step' ]
-			&& 0 == count(
-				$questions_response_errors
-			)
-			&& ! array_key_exists( 'questions_submission_back', $_POST )
-		):
+		if ( (int) $_POST[ 'questions_actual_step' ] == (int) $_POST[ 'questions_next_step' ] && 0 == count( $questions_response_errors ) && ! array_key_exists( 'questions_submission_back', $_POST ) ):
 			$response = $_SESSION[ 'questions_response' ][ $questions_survey_id ];
 
 			if ( $this->save_data( $questions_survey_id, apply_filters( 'questions_save_response', $response ) ) ):
@@ -539,13 +586,13 @@ class Questions_ProcessResponse {
 	/**
 	 * Validating response
 	 *
-	 * @param int   $survey_id
+	 * @param int $form_id
 	 * @param array $response
-	 * @param int   $step
+	 * @param int $step
 	 * @return boolean $validated
 	 * @since 1.0.0
 	 */
-	public function validate_response( $survey_id, $response, $step ) {
+	public function validate_response( $form_id, $response, $step ) {
 
 		global $questions_response_errors;
 
@@ -553,7 +600,7 @@ class Questions_ProcessResponse {
 			return FALSE;
 		}
 
-		if ( empty( $survey_id ) ) {
+		if ( empty( $form_id ) ) {
 			return NULL;
 		}
 
@@ -561,7 +608,7 @@ class Questions_ProcessResponse {
 			return NULL;
 		}
 
-		$elements = $this->get_elements( $survey_id, $step );
+		$elements = $this->get_elements( $form_id, $step );
 
 		if ( ! is_array( $elements ) && count( $elements ) == 0 ) {
 			return NULL;
@@ -622,12 +669,12 @@ class Questions_ProcessResponse {
 	/**
 	 * Sub function for save_response
 	 *
-	 * @param int   $survey_id
+	 * @param int   $form_id
 	 * @param array $response
 	 * @return boolean $saved
 	 * @since 1.0.0
 	 */
-	private function save_data( $survey_id, $response ) {
+	private function save_data( $form_id, $response ) {
 
 		global $wpdb, $questions_global, $current_user;
 
@@ -642,17 +689,17 @@ class Questions_ProcessResponse {
 		$wpdb->insert(
 			$questions_global->tables->responds,
 			array(
-				'questions_id' => $survey_id,
+				'questions_id' => $form_id,
 				'user_id'      => $user_id,
 				'timestamp'    => time(),
 				'remote_addr'  => $_SERVER[ 'REMOTE_ADDR' ]
 			)
 		);
 
-		do_action( 'questions_save_data', $survey_id, $response );
+		do_action( 'questions_save_data', $form_id, $response );
 
-		$respond_id       = $wpdb->insert_id;
-		$this->respond_id = $respond_id;
+        $response_id       = $wpdb->insert_id;
+		$this->response_id = $response_id;
 
 		foreach ( $response AS $element_id => $answers ):
 
@@ -662,7 +709,7 @@ class Questions_ProcessResponse {
 					$wpdb->insert(
 						$questions_global->tables->respond_answers,
 						array(
-							'respond_id'  => $respond_id,
+							'respond_id'  => $response_id,
 							'question_id' => $element_id,
 							'value'       => $answer
 						)
@@ -675,7 +722,7 @@ class Questions_ProcessResponse {
 				$wpdb->insert(
 					$questions_global->tables->respond_answers,
 					array(
-						'respond_id'  => $respond_id,
+						'respond_id'  => $response_id,
 						'question_id' => $element_id,
 						'value'       => $answer
 					)
@@ -685,71 +732,6 @@ class Questions_ProcessResponse {
 		endforeach;
 
 		return TRUE;
-	}
-
-	/**
-	 * Has the user participated survey
-	 *
-	 * @param $questions_id
-	 * @param int $user_id
-	 * @return boolean $has_participated
-	 * @internal param int $survey_id
-	 * @since 1.0.0
-	 */
-	public function has_participated( $questions_id, $user_id = NULL ) {
-
-		global $wpdb, $current_user, $questions_global;
-
-		// Setting up user ID
-		if ( NULL == $user_id ):
-			get_currentuserinfo();
-			$user_id = $user_id = $current_user->ID;
-		endif;
-
-		// Setting up Survey ID
-		if ( NULL == $questions_id ) {
-			return FALSE;
-		}
-
-		$sql   = $wpdb->prepare(
-			"SELECT COUNT(*) FROM {$questions_global->tables->responds} WHERE questions_id=%d AND user_id=%s",
-			$questions_id, $user_id
-		);
-		$count = $wpdb->get_var( $sql );
-
-		if ( 0 == $count ):
-			return FALSE;
-		else:
-			return TRUE;
-		endif;
-	}
-
-	/**
-	 * Has IP already participated
-	 *
-	 * @param $questions_id
-	 * @return bool $has_participated
-	 * @internal param int $survey_id
-	 * @since 1.0.0
-	 *
-	 */
-	public function ip_has_participated( $questions_id ) {
-
-		global $wpdb, $questions_global;
-
-		$remote_ip = $_SERVER[ 'REMOTE_ADDR' ];
-
-		$sql   = $wpdb->prepare(
-			"SELECT COUNT(*) FROM {$questions_global->tables->responds} WHERE questions_id=%d AND remote_addr=%s",
-			$questions_id, $remote_ip
-		);
-		$count = $wpdb->get_var( $sql );
-
-		if ( 0 == $count ):
-			return FALSE;
-		else:
-			return TRUE;
-		endif;
 	}
 
 	/**
@@ -785,13 +767,13 @@ class Questions_ProcessResponse {
 	/**
 	 * Text which will be shown after a user has participated successful
 	 *
-	 * @param int $survey_id
+	 * @param int $form_id
 	 * @return string $html
 	 * @since 1.0.0
 	 */
-	public function text_thankyou_for_participation( $survey_id ) {
+	public function text_thankyou_for_participation( $form_id ) {
 
-		$show_results = get_post_meta( $survey_id, 'show_results', TRUE );
+		$show_results = get_post_meta( $form_id, 'show_results', TRUE );
 		if ( '' == $show_results ) {
 			$show_results = 'no';
 		}
@@ -799,38 +781,38 @@ class Questions_ProcessResponse {
 		$html = '<div id="questions-thank-participation">';
 		$html .= '<p>' . __( 'Thank you for participating this survey!', 'questions-locale' ) . '</p>';
 		if ( 'yes' == $show_results ) {
-			$html .= $this->show_results( $survey_id );
+			$html .= $this->show_results( $form_id );
 		}
 
-		$html .= '<input name="response_id" id="response_id" type="hidden" value="' . $this->respond_id . '" />';
+		$html .= '<input name="response_id" id="response_id" type="hidden" value="' . $this->response_id . '" />';
 		$html .= '</div>';
 
-		return apply_filters( 'questions_text_thankyou_for_participation', $html, $survey_id );
+		return apply_filters( 'questions_text_thankyou_for_participation', $html, $form_id );
 	}
 
 	/**
 	 * Text which will be shown if a user has participated already
 	 *
-	 * @param int $survey_id
+	 * @param int $form_id
 	 * @return string $html
 	 * @since 1.0.0
 	 */
-	public function text_already_participated( $survey_id ) {
+	public function text_already_participated( $form_id ) {
 
-		$show_results = get_post_meta( $survey_id, 'show_results', TRUE );
+		$show_results = get_post_meta( $form_id, 'show_results', TRUE );
 		if ( '' == $show_results ) {
 			$show_results = 'no';
 		}
 
 		$html = '<div id="questions-already-participated">';
-		$html .= '<p>' . __( 'You already have participated this poll.', 'questions-locale' ) . '</p>';
+		$html .= '<p>' . __( 'You already have participated in this poll.', 'questions-locale' ) . '</p>';
 		if ( 'yes' == $show_results ) {
-			$html .= $this->show_results( $survey_id );
+			$html .= $this->show_results( $form_id );
 		}
 
 		$html .= '</div>';
 
-		return apply_filters( 'questions_text_already_participated', $html, $survey_id );
+		return apply_filters( 'questions_text_already_participated', $html, $form_id );
 	}
 
 	/**
@@ -870,28 +852,27 @@ class Questions_ProcessResponse {
 	 * @return string $html
 	 * @since 1.0.0
 	 */
-	public function show_results( $survey_id ) {
+	public function show_results( $form_id ) {
 
 		$html = '<p>' . __( 'This are the actual results:', 'questions-locale' ) . '</p>';
-		$html .= do_shortcode( '[survey_results id="' . $survey_id . '"]' );
+		$html .= do_shortcode( '[survey_results id="' . $form_id . '"]' );
 
-		return apply_filters( 'questions_show_results', $html, $survey_id );
+		return apply_filters( 'questions_show_results', $html, $form_id );
 	}
 }
 
-$Questions_ProcessResponse = new Questions_ProcessResponse();
+global $Questions_FormProcess;
+$Questions_FormProcess = new Questions_FormProcess();
 
 /**
  * Checks if a user has participated on a survey
  *
- * @param      $questions_id
+ * @param int $form_id
  * @param null $user_id
- *
- * @return int $survey_id
+ * @return boolean $has_participated
  */
-function qu_user_has_participated( $questions_id, $user_id = NULL ) {
+function qu_user_has_participated( $form_id, $user_id = NULL ) {
 
-	global $Questions_ProcessResponse;
-
-	return $Questions_ProcessResponse->has_participated( $questions_id, $user_id );
+	global $Questions_FormProcess;
+	return $Questions_FormProcess->has_participated( $form_id, $user_id );
 }

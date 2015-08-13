@@ -52,8 +52,8 @@ class Questions_AbstractData{
 
 			$sql = $wpdb->prepare( "SELECT type FROM {$questions_global->tables->questions} WHERE id = %s", $key );
 			$result = $wpdb->get_row( $sql );
-			
-			$element_class = 'Questions_SurveyElement_' . $result->type;
+
+			$element_class = 'Questions_FormElement_' . $result->type;
 			
 			if( !class_exists( $element_class ) )
 				continue;
@@ -197,17 +197,20 @@ class Questions_AbstractData{
 					
 				// If there are more answers than one posssible (e.g. Multiple Choice)
 				elseif( array_key_exists( 'array', $question ) && TRUE == $question[ 'array' ] ):
-					
-					// Running response of each user
-					foreach( $question[ 'responses' ] AS $response_id => $response ):
-						$i = 0;
-						
-						// Running each answer of response
-						foreach( $response AS $key => $value ):
-							$results[ $response_id ][ $question_id . '-' . $i++ ] = self::filter_string( $value ); 
-						endforeach;
-						
-					endforeach;
+
+
+                    if( is_array( $question[ 'responses' ] ) && 0 != count( $question[ 'responses' ] ) ):
+                        // Running response of each user
+                        foreach( $question[ 'responses' ] AS $response_id => $response ):
+                            $i = 0;
+
+                            // Running each answer of response
+                            foreach( $response AS $key => $value ):
+                                $results[ $response_id ][ $question_id . '-' . $i++ ] = self::filter_string( $value );
+                            endforeach;
+
+                        endforeach;
+                    endif;
 					
 				// If there is only one value for one element possible
 				else:
@@ -221,8 +224,6 @@ class Questions_AbstractData{
 				endif;
 				
 			endforeach;
-			
-			// p( $results );
 			
 			// Cleaning up results
 			$cleaned_up_results = array();

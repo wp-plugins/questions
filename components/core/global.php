@@ -1,8 +1,6 @@
 <?php
 /*
- * Questions main class
- *
- * This should be used as parent class for Question-Answers.
+ * Questions Class for main global $questions_global
  *
  * @author awesome.ug, Author <support@awesome.ug>
  * @package Questions/Core
@@ -33,11 +31,13 @@ global $questions_global;
 
 class Questions{
 	var $tables;
-	var $components = array();
+    var $components = array();
 	var $element_types = array();
-	
+    var $chart_creators = array();
+
+
 	public function __construct(){
-		add_action( 'plugins_loaded', array( $this, 'tables' ) );
+		$this->tables();
 	}
 	
 	public function tables(){
@@ -67,16 +67,28 @@ class Questions{
 		return TRUE;
 	}
 	
-	public function add_survey_element( $slug, $object ){
+	public function add_form_element( $slug, $object ){
 		if( '' == $slug )
 			return FALSE;
 		
-		if( !is_object( $object ) && 'Questions_SurveyElement' != get_parent_class( $object ) )
+		if( !is_object( $object ) && 'Questions_FormElement' != get_parent_class( $object ) )
 			return FALSE;
 		
 		$this->element_types[ $slug ] = $object;
 		
 		return TRUE;
 	}
+
+    public function add_charts_creator( $slug, $object ){
+        if( '' == $slug )
+            return FALSE;
+
+        if( !is_object( $object ) && 'Questions_ChartCreator' != get_parent_class( $object ) )
+            return FALSE;
+
+        $this->chart_creators[ $slug ] = $object;
+
+        return TRUE;
+    }
 }
 $questions_global = new Questions();
